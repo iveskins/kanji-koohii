@@ -13,7 +13,7 @@
  *   getMyStoriesSelect($userId)
  *   getSelectForExport($userId)
  *
- * 
+ *
  * @author  Fabrice Denis
  */
 
@@ -42,7 +42,7 @@ class StoriesPeer extends coreDatabaseTable
 
   /**
    * Returns story and story settings for given user.
-   * 
+   *
    * @return object  Stories row data as object, or false.
    */
   public static function getStory($userId, $ucsId)
@@ -70,7 +70,7 @@ class StoriesPeer extends coreDatabaseTable
 
   /**
    * Create/Update story and story settings for user.
-   * 
+   *
    * @param  int    $userId    User id
    * @param  int    $ucsId     UCS-2 code value.
    * @param  array  $data      Cols: text, public
@@ -87,7 +87,7 @@ class StoriesPeer extends coreDatabaseTable
       self::$db->select('sid')->from('stories')->where('userid = ? AND ucs_id = ?', array($userId, $ucsId))
     );
 
-    // either false (no row), or a positive auto increment number > 0 
+    // either false (no row), or a positive auto increment number > 0
     assert('$storyId !== 0');
 
     if (false === $storyId)
@@ -109,10 +109,10 @@ class StoriesPeer extends coreDatabaseTable
 
     return $result;
   }
-  
+
   /**
    * Delete a story.
-   * 
+   *
    * @param  int    $userId   User id
    * @param  int    $ucsId    UCS-2 character code.
    *
@@ -127,11 +127,11 @@ class StoriesPeer extends coreDatabaseTable
 
   /**
    * Return a story formatted for display, with automatic keyword bolding.
-   * 
+   *
    * The input story is ESCAPED before html tags are inserted for the formatting.
    * It is assumed strip_tags() was used previously. The returned string should not be escaped
    * again in the view template.
-   * 
+   *
    * @param  String   $story
    * @param  String   $keyword
    * @param  Boolean  $bSubstituteLinks    True to show frame number references as links otherwise plain text.
@@ -145,7 +145,17 @@ class StoriesPeer extends coreDatabaseTable
     sfProjectConfiguration::getActive()->loadHelpers(array('Tag', 'Url'));
 
     // minimal punctuation : upper case first beginning of text
-    $s = phpToolkit::mb_ucfirst($story);
+
+    {
+      $str = $story[0];
+      $exclude_list = array("#","*","{");
+      if(in_array($str, $exclude_list)){
+      $s = phpToolkit::mb_ucfirst_regex($story);
+      }
+   else {
+      $s = phpToolkit::mb_ucfirst($story);
+      }
+    }
 
 //echo error_reporting();exit;
 
@@ -162,7 +172,7 @@ class StoriesPeer extends coreDatabaseTable
       // use 4th edition keyword if multiple edition keyword
       $keyword = $keywords[1];
     }
-    
+
     // remove trailing '?' or '...'
     $keyword = preg_replace('/\s*\.\.\.$|\s*\?$/', '', $keyword);
     // fixes highlighting keywords like "lead (metal)" or "abyss [old]"
@@ -226,9 +236,9 @@ class StoriesPeer extends coreDatabaseTable
    *
    * If the character exists in the user's selected index, the frame number is
    * also displayed (relative to this user's chosen index).
-   * 
+   *
    * @param  array    $matches  Reg exp matches, $matches[1] is the kanji id
-   * 
+   *
    * @return string
    */
   public static function getFormattedKanjiLink($matches)
@@ -265,7 +275,7 @@ class StoriesPeer extends coreDatabaseTable
   /**
    * Returns array of stories for the "Favourite" and "Newest" sections in the
    * Study page.
-   *  
+   *
    *
    * @param int    $ucsId  UCS-2 code value.
    *
@@ -331,13 +341,13 @@ class StoriesPeer extends coreDatabaseTable
 
       $stories[] = $row;
     }
-    
+
     return $stories;
   }
 
   /**
    * Returns count of shared and private stories for given user.
-   * 
+   *
    * @param  int  $userId   User's id.
    * @return object          Object with properties 'private' 'public' and 'total'
    */
@@ -346,7 +356,7 @@ class StoriesPeer extends coreDatabaseTable
     $num_stories = new stdClass;
     $num_stories->private = 0;
     $num_stories->public  = 0;
-    
+
     self::getInstance()->select(array('public', 'count' => 'COUNT(*)'))
       ->where('userid = ?', $userId)
       ->group('public')
@@ -367,7 +377,7 @@ class StoriesPeer extends coreDatabaseTable
 
   /**
    * Returns Select object for My Stories component.
-   * 
+   *
    * @param   int     $userId
    *
    * @return
@@ -392,7 +402,7 @@ class StoriesPeer extends coreDatabaseTable
 
   /**
    * Returns select for export to CSV.
-   * 
+   *
    * @return coreDatabaseSelect
    */
   public static function getSelectForExport($userId)
