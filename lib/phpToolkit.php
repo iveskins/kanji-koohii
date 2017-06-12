@@ -1,7 +1,7 @@
 <?php
 /**
  * Miscellaneous helpers to plug some wanted php functions.
- * 
+ *
  * @author  Fabrice Denis
  */
 
@@ -10,11 +10,33 @@ class phpToolkit
   /**
    * Implement multi-byte aware ucfirst().
    * ucfirst() is not utf8-aware and can cause "Invalid multibyte sequence" down the line.
-   * 
+   *
    * @uses  coreContext 'sf_charset'
-   * 
+   *
    * @param object $string
    */
+  public static function mb_ucfirst_regex($string)
+  {
+    if (!function_exists('mb_ucfirst_regex') && function_exists('mb_substr'))
+    {
+      #$charset = "UTF-8";
+      $charset = sfConfig::get('sf_charset');
+      preg_match("/(?P<start>[^A-Za-z]*)(?P<first_letter>[A-Za-z])(?P<end>.*$)/",
+                       $string,
+                       $matches);
+      $start = $matches["start"];
+      $first = $matches["first_letter"];
+      $end = $matches["end"];
+      $string = $start . mb_strtoupper($first, $charset) . $end;
+
+    }
+    else
+    {
+      throw new Exception(__METHOD__.': no mb_substr() support.');
+    }
+    return $string;
+  }
+
   public static function mb_ucfirst($string)
   {
     if (!function_exists('mb_ucfirst') && function_exists('mb_substr'))
@@ -30,11 +52,12 @@ class phpToolkit
     return $string;
   }
 
+
   /**
    * Extract a subset of an associative array by specifying the wanted keys.
-   * 
+   *
    * If a wanted key does not exist in the input array, it is ignored.
-   * 
+   *
    * @param array $input      Associative array
    * @param array $spliceKeys Indexed array of names of keys
    */
@@ -56,9 +79,9 @@ class phpToolkit
 
   /**
    * Extract a subset of values from an associative array by specifying the wanted keys.
-   * 
+   *
    * If a wanted key does not exist in the input array, it is ignored.
-   * 
+   *
    * @param array $input      Associative array
    * @param array $spliceKeys Indexed array of names of keys
    */
@@ -80,22 +103,22 @@ class phpToolkit
 
   /**
    * Merge class names given as strings or arrays (array arguments is faster).
-   * 
+   *
    * @param  mixed  $classnames      Class name(s) given as a "class" attribute string, or an array of class names
    * @param  mixed  $add_classnames  Class names to add, given as string or array
    * @return string   String with all class names combined
-   * 
+   *
    */
   public static function merge_class_names($classnames, $add_classnames)
   {
     if (is_string($classnames)) {
       $classnames = preg_split('/\s+/', $classnames);
     }
-    
+
     if (is_string($add_classnames)) {
       $add_classnames = preg_split('/\s+/', $add_classnames);
     }
-    
+
     if (count($add_classnames)) {
       $classnames = array_merge($classnames, $add_classnames);
     }
